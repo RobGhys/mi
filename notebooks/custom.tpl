@@ -1,12 +1,9 @@
-{# Standalone template - no inheritance #}
+{% extends 'classic/index.html.j2' %}
 
-{%- block header -%}
-<!DOCTYPE html>
-<html>
+{% block header %}
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ resources['metadata']['name'] }}</title>
+    {# Original nbconvert header with MathJax and other essentials #}
+    {{ super() }}
     
     <style>
         /* Theme */
@@ -47,31 +44,30 @@
             background-color: #e1e4e8;
         }
 
-        /* Notebook content */
-        .notebook-content {
+        /* Content styling improvements */
+        .jp-Notebook {
             padding: 2rem 0;
         }
         
-        .cell {
+        .jp-Cell {
             margin: 1rem 0;
         }
         
-        .input_area pre {
+        .jp-InputArea-editor {
             background-color: #f6f8fa;
             padding: 1rem;
             border-radius: 4px;
-            overflow-x: auto;
+            font-family: monospace;
         }
         
-        .output_area pre {
+        .jp-OutputArea-output {
             padding: 1rem;
             border-left: 3px solid #0366d6;
             background-color: #f8f9fa;
         }
 
-        img {
-            max-width: 100%;
-            height: auto;
+        .jp-MarkdownCell {
+            padding: 1rem 0;
         }
 
         /* Footer */
@@ -86,49 +82,21 @@
         }
     </style>
 </head>
-{%- endblock header -%}
+{% endblock header %}
 
-{%- block body -%}
+{% block body_header %}
 <body>
     <div class="nav-container">
         <h1>Mechanistic Interpretability Tutorial</h1>
         <nav class="nav-links">
-            <a href="../../docs/index.html">Home</a>
+            <a href="../../docs/">Home</a>
         </nav>
     </div>
+{% endblock body_header %}
 
-    <div class="notebook-content">
-    {% for cell in nb.cells %}
-        <div class="cell {{ cell.cell_type }}_cell">
-        {%- if cell.cell_type == 'code' -%}
-            <div class="input_area">
-                <pre>{{ cell.source }}</pre>
-            </div>
-            {%- if cell.outputs -%}
-            <div class="output_area">
-                {%- for output in cell.outputs -%}
-                    {%- if output.output_type == 'stream' -%}
-                        <pre>{{ output.text }}</pre>
-                    {%- elif output.output_type == 'error' -%}
-                        <pre style="color: red;">{{ output.ename }}: {{ output.evalue }}</pre>
-                    {%- elif output.output_type == 'execute_result' -%}
-                        {%- if 'text/plain' in output.data -%}
-                            <pre>{{ output.data['text/plain'] }}</pre>
-                        {%- endif -%}
-                    {%- endif -%}
-                {%- endfor -%}
-            </div>
-            {%- endif -%}
-        {%- elif cell.cell_type == 'markdown' -%}
-            {{ cell.source | markdown2html | safe }}
-        {%- endif -%}
-        </div>
-    {% endfor %}
-    </div>
-
+{% block body_footer %}
     <footer class="footer">
         <p>© 2024 Robin Ghyselinck. All Rights Reserved. Any use, reproduction, or distribution of this material without express written permission from the copyright owner is strictly prohibited.</p>
     </footer>
 </body>
-</html>
-{%- endblock body -%}
+{% endblock body_footer %}
