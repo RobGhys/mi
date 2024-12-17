@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>2_advanced_maths</title>
+<style>
+        /* Theme */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-container h1 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #0366d6;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .nav-links a:hover {
+            background-color: #e1e4e8;
+        }
+        .nav-links a.active {
+            background-color: #0366d6;
+            color: white;
+        }
+
+        /* Notebook content */
+        .notebook-content {
+            padding: 2rem 0;
+        }
+        
+        .cell {
+            margin: 1rem 0;
+        }
+        
+        .input_area pre {
+            background-color: #f6f8fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        .output_area pre {
+            padding: 1rem;
+            border-left: 3px solid #0366d6;
+            background-color: #f8f9fa;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid #e1e4e8;
+        }
+    </style>
+</head><body>
+<div class="nav-container">
+<h1>Mechanistic Interpretability Tutorial</h1>
+<nav class="nav-links">
+<a href="../../docs/index.html">Home</a>
+<div class="nav-section">
+<a href="../1_maths/1_core_maths.html">Core Maths</a>
+<a class="active" href="../1_maths/2_advanced_maths.html">Advanced Maths</a>
+<a href="../1_maths/3_probas.html">Probability</a>
+<a href="../1_maths/4_calculus.html">Calculus</a>
+</div>
+<div class="nav-section">
+<a href="../2_numpy/1_np_tuto.html">NumPy</a>
+</div>
+<div class="nav-section">
+<a href="../3_nn/micrograd.html">Neural Networks</a>
+</div>
+</nav>
+</div>
+<div class="notebook-content">
+<div class="cell code_cell"><div class="input_area">
+<pre>import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import scipy.linalg as la</pre>
+</div></div>
+<div class="cell markdown_cell"><h1 id="Advanced-Linear-Algebra:-SVD,-Orthogonal-Matrices,-and-Eigendecomposition">Advanced Linear Algebra: SVD, Orthogonal Matrices, and Eigendecomposition<a class="anchor-link" href="#Advanced-Linear-Algebra:-SVD,-Orthogonal-Matrices,-and-Eigendecomposition">¶</a></h1><h2 id="1.-Singular-Value-Decomposition-(SVD)">1. Singular Value Decomposition (SVD)<a class="anchor-link" href="#1.-Singular-Value-Decomposition-(SVD)">¶</a></h2><h3 id="Mathematical-Foundation">Mathematical Foundation<a class="anchor-link" href="#Mathematical-Foundation">¶</a></h3><p>The Singular Value Decomposition is a factorization of a matrix $A$ into the product of three matrices:</p>
+<p>$A = U\Sigma V^T$</p>
+<p>where:</p>
+<ul>
+<li>$U$ is an $m \times m$ orthogonal matrix</li>
+<li>$\Sigma$ is an $m \times n$ diagonal matrix with non-negative real numbers</li>
+<li>$V^T$ is the transpose of an $n \times n$ orthogonal matrix $V$</li>
+</ul>
+<p>The diagonal entries $\sigma_i$ of $\Sigma$ are called singular values.</p>
+<h3 id="Geometric-Interpretation">Geometric Interpretation<a class="anchor-link" href="#Geometric-Interpretation">¶</a></h3><p>SVD decomposes any linear transformation into three steps:</p>
+<ol>
+<li>Rotation/reflection ($V^T$)</li>
+<li>Scaling along coordinate axes ($\Sigma$)</li>
+<li>Another rotation/reflection ($U$)</li>
+</ol>
+<p>Let's visualize this decomposition:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def visualize_svd():
+    # Create a matrix
+    A = np.array([[3, 1], [1, 2]])
+    
+    # Compute SVD
+    U, s, Vt = np.linalg.svd(A)
+    
+    # Create points for visualization
+    theta = np.linspace(0, 2*np.pi, 100)
+    circle_x = np.cos(theta)
+    circle_y = np.sin(theta)
+    points = np.vstack((circle_x, circle_y))
+    
+    # Apply transformations step by step
+    step1 = Vt @ points
+    step2 = np.diag(s) @ step1
+    step3 = U @ step2
+    
+    # Plotting
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 12))
+    
+    # Original circle
+    ax1.plot(points[0], points[1], 'b-')
+    ax1.grid(True)
+    ax1.set_title('Original Unit Circle')
+    
+    # After V^T (rotation)
+    ax2.plot(step1[0], step1[1], 'g-')
+    ax2.grid(True)
+    ax2.set_title('After V^T (First Rotation)')
+    
+    # After Σ (scaling)
+    ax3.plot(step2[0], step2[1], 'r-')
+    ax3.grid(True)
+    ax3.set_title('After Σ (Scaling)')
+    
+    # After U (final rotation)
+    ax4.plot(step3[0], step3[1], 'm-')
+    ax4.grid(True)
+    ax4.set_title('After U (Final Rotation)')
+    
+    plt.tight_layout()
+    plt.show()
+    
+    return U, s, Vt
+
+U, s, Vt = visualize_svd()</pre>
+</div><div class="output_area"></div></div>
+<div class="cell markdown_cell"><h3 id="Why-is-SVD-Useful?">Why is SVD Useful?<a class="anchor-link" href="#Why-is-SVD-Useful?">¶</a></h3><ol>
+<li><p><strong>Matrix Approximation</strong></p>
+<ul>
+<li>SVD allows for low-rank approximations by keeping only the largest singular values</li>
+<li>This is crucial in data compression and dimensionality reduction</li>
+</ul>
+</li>
+<li><p><strong>Principal Component Analysis (PCA)</strong></p>
+<ul>
+<li>SVD is directly related to PCA</li>
+<li>The right singular vectors ($V$) are the principal components</li>
+<li>The singular values tell us how important each component is</li>
+</ul>
+</li>
+<li><p><strong>Pseudoinverse Computation</strong></p>
+<ul>
+<li>The pseudoinverse can be easily computed using SVD</li>
+<li>This is useful for solving least squares problems</li>
+</ul>
+</li>
+<li><p><strong>Condition Number</strong></p>
+<ul>
+<li>The ratio of largest to smallest singular values gives the condition number</li>
+<li>This tells us how well-conditioned a matrix is</li>
+</ul>
+</li>
+</ol>
+<p>Let's implement some of these applications:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def svd_applications():
+    # Create a noisy matrix
+    true_rank = 2
+    n = 10
+    true_data = np.random.randn(n, true_rank) @ np.random.randn(true_rank, n)
+    noise = 0.1 * np.random.randn(n, n)
+    A = true_data + noise
+    
+    # Compute SVD
+    U, s, Vt = np.linalg.svd(A)
+    
+    # Low rank approximation
+    r = 2  # rank of approximation
+    A_approx = U[:, :r] @ np.diag(s[:r]) @ Vt[:r, :]
+    
+    # Compute errors
+    error = np.linalg.norm(A - A_approx, 'fro')
+    condition_number = s[0] / s[-1]
+    
+    # Plotting singular values
+    plt.figure(figsize=(10, 5))
+    plt.semilogy(s, 'bo-')
+    plt.grid(True)
+    plt.title('Singular Values (Log Scale)')
+    plt.xlabel('Index')
+    plt.ylabel('Singular Value')
+    plt.show()
+    
+    return error, condition_number
+
+error, cond = svd_applications()</pre>
+</div><div class="output_area"></div></div>
+<div class="cell markdown_cell"><h2 id="2.-Orthogonal/Orthonormal-Matrices">2. Orthogonal/Orthonormal Matrices<a class="anchor-link" href="#2.-Orthogonal/Orthonormal-Matrices">¶</a></h2><h3 id="Mathematical-Definition">Mathematical Definition<a class="anchor-link" href="#Mathematical-Definition">¶</a></h3><p>A matrix $Q$ is orthogonal if:
+$Q^TQ = QQ^T = I$</p>
+<p>This means:</p>
+<ol>
+<li>Its columns are orthonormal (perpendicular and unit length)</li>
+<li>Its inverse equals its transpose: $Q^{-1} = Q^T$</li>
+</ol>
+<h3 id="Why-are-Orthonormal-Bases-Special?">Why are Orthonormal Bases Special?<a class="anchor-link" href="#Why-are-Orthonormal-Bases-Special?">¶</a></h3><ol>
+<li><p><strong>Preservation of Inner Products</strong></p>
+<ul>
+<li>Orthogonal transformations preserve distances and angles</li>
+<li>$\\|Qv\\| = \\|v\\|$ for any vector $v$</li>
+</ul>
+</li>
+<li><p><strong>Computational Efficiency</strong></p>
+<ul>
+<li>No need to compute inverse (just transpose)</li>
+<li>Better numerical stability</li>
+</ul>
+</li>
+<li><p><strong>Geometric Interpretation</strong></p>
+<ul>
+<li>Represents pure rotations and reflections</li>
+<li>No scaling or shearing involved</li>
+</ul>
+</li>
+</ol>
+<p>Let's visualize these properties:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def demonstrate_orthogonal_properties():
+    # Create an orthogonal matrix (rotation)
+    theta = np.pi/3
+    Q = np.array([[np.cos(theta), -np.sin(theta)],
+                  [np.sin(theta), np.cos(theta)]])
+    
+    # Create a regular non-orthogonal basis
+    A = np.array([[1, 0.5],
+                  [0.5, 1]])
+    
+    # Create points for visualization
+    x = np.linspace(-1, 1, 10)
+    y = np.linspace(-1, 1, 10)
+    X, Y = np.meshgrid(x, y)
+    points = np.column_stack((X.flatten(), Y.flatten()))
+    
+    # Apply transformations
+    orthogonal_transform = points @ Q.T
+    regular_transform = points @ A.T
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    
+    # Plot orthogonal transformation
+    ax1.scatter(orthogonal_transform[:, 0], orthogonal_transform[:, 1], c='b', alpha=0.5)
+    ax1.grid(True)
+    ax1.set_title('Orthogonal Transformation\n(Preserves Angles and Distances)')
+    
+    # Plot regular transformation
+    ax2.scatter(regular_transform[:, 0], regular_transform[:, 1], c='r', alpha=0.5)
+    ax2.grid(True)
+    ax2.set_title('Non-orthogonal Transformation\n(Distorts Angles and Distances)')
+    
+    plt.show()
+    
+    return Q, A
+
+Q, A = demonstrate_orthogonal_properties()</pre>
+</div><div class="output_area"></div></div>
+<div class="cell markdown_cell"><h2 id="3.-Eigenvalues-and-Eigenvectors">3. Eigenvalues and Eigenvectors<a class="anchor-link" href="#3.-Eigenvalues-and-Eigenvectors">¶</a></h2><h3 id="Mathematical-Definition">Mathematical Definition<a class="anchor-link" href="#Mathematical-Definition">¶</a></h3><p>For a square matrix $A$, an eigenvector $v$ and corresponding eigenvalue $\lambda$ satisfy:</p>
+<p>$Av = \lambda v$</p>
+<p>This means that applying the transformation $A$ to $v$ only scales $v$ by $\lambda$.</p>
+<h3 id="Geometric-Interpretation">Geometric Interpretation<a class="anchor-link" href="#Geometric-Interpretation">¶</a></h3><ol>
+<li><p><strong>Invariant Directions</strong></p>
+<ul>
+<li>Eigenvectors represent directions that are only scaled (not rotated) by the transformation</li>
+<li>The eigenvalue tells us the amount of scaling</li>
+</ul>
+</li>
+<li><p><strong>Classification of Linear Transformations</strong></p>
+<ul>
+<li>Real positive eigenvalues: stretching/compression</li>
+<li>Negative eigenvalues: reflection and scaling</li>
+<li>Complex eigenvalues: rotation with scaling</li>
+</ul>
+</li>
+</ol>
+<p>Let's visualize these concepts:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def visualize_eigenvectors():
+    # Create matrices with different types of eigenvalues
+    # Stretching
+    A1 = np.array([[2, 0],
+                   [0, 1]])
+    # Rotation
+    theta = np.pi/4
+    A2 = np.array([[np.cos(theta), -np.sin(theta)],
+                   [np.sin(theta), np.cos(theta)]])
+    # Reflection
+    A3 = np.array([[1, 0],
+                   [0, -1]])
+    
+    matrices = [A1, A2, A3]
+    titles = ['Stretching', 'Rotation', 'Reflection']
+    
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    
+    for ax, A, title in zip(axes, matrices, titles):
+        # Compute eigenvectors and eigenvalues
+        eigvals, eigvecs = np.linalg.eig(A)
+        
+        # Create grid of points
+        x = np.linspace(-2, 2, 20)
+        y = np.linspace(-2, 2, 20)
+        X, Y = np.meshgrid(x, y)
+        points = np.column_stack((X.flatten(), Y.flatten()))
+        
+        # Transform points
+        transformed = points @ A.T
+        
+        # Plot
+        ax.scatter(points[:, 0], points[:, 1], c='b', alpha=0.2, s=10)
+        ax.scatter(transformed[:, 0], transformed[:, 1], c='r', alpha=0.2, s=10)
+        
+        # Plot eigenvectors if real
+        for i in range(len(eigvals)):
+            if np.isreal(eigvals[i]):
+                v = eigvecs[:, i]
+                ax.quiver(0, 0, v[0], v[1], angles='xy', scale_units='xy',
+                         scale=1, color='g', label=f'λ={eigvals[i]:.2f}')
+        
+        ax.grid(True)
+        ax.set_title(title)
+        ax.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+visualize_eigenvectors()</pre>
+</div><div class="output_area"><pre>/tmp/ipykernel_35800/3351754760.py:45: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+  ax.legend()
+</pre></div></div>
+<div class="cell markdown_cell"><h3 id="Applications-of-Eigendecomposition">Applications of Eigendecomposition<a class="anchor-link" href="#Applications-of-Eigendecomposition">¶</a></h3><ol>
+<li><p><strong>Diagonalization</strong></p>
+<ul>
+<li>If $A$ has $n$ linearly independent eigenvectors, then:</li>
+<li>$A = PDP^{-1}$ where $D$ is diagonal matrix of eigenvalues</li>
+<li>This makes computing powers of $A$ very efficient</li>
+</ul>
+</li>
+<li><p><strong>Dynamical Systems</strong></p>
+<ul>
+<li>Eigenvalues determine long-term behavior</li>
+<li>Positive eigenvalues: exponential growth</li>
+<li>Negative eigenvalues: exponential decay</li>
+<li>Complex eigenvalues: oscillatory behavior</li>
+</ul>
+</li>
+<li><p><strong>Principal Component Analysis</strong></p>
+<ul>
+<li>Eigenvectors of covariance matrix are principal components</li>
+<li>Eigenvalues represent variance explained by each component</li>
+</ul>
+</li>
+</ol>
+<p>Let's implement some applications:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def eigenvalue_applications():
+    # Create a matrix
+    A = np.array([[4, 1],
+                  [1, 3]])
+    
+    # Compute eigendecomposition
+    eigvals, eigvecs = np.linalg.eig(A)
+    
+    # Diagonalization
+    D = np.diag(eigvals)
+    P = eigvecs
+    A_reconstructed = P @ D @ np.linalg.inv(P)
+    
+    # Compute powers efficiently
+    def matrix_power(A, n):
+        eigvals, P = np.linalg.eig(A)
+        return P @ np.diag(eigvals**n) @ np.linalg.inv(P)
+    
+    # Dynamic system simulation
+    t = np.linspace(0, 2, 100)
+    x0 = np.array([1, 0])
+    trajectories = np.zeros((len(t), 2))
+    
+    for i, ti in enumerate(t):
+        trajectories[i] = matrix_power(A, ti) @ x0
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(t, trajectories[:, 0], 'b-', label='x₁')
+    plt.plot(t, trajectories[:, 1], 'r-', label='x₂')
+    plt.grid(True)
+    plt.title('Dynamic System Evolution')
+    plt.xlabel('Time')
+    plt.ylabel('State')
+    plt.legend()
+    plt.show()
+    
+    return eigvals, eigvecs
+
+eigvals, eigvecs = eigenvalue_applications()</pre>
+</div><div class="output_area"></div></div>
+<div class="cell markdown_cell"><h2 id="Key-Insights-and-Connections">Key Insights and Connections<a class="anchor-link" href="#Key-Insights-and-Connections">¶</a></h2><ol>
+<li><p><strong>SVD vs Eigendecomposition</strong></p>
+<ul>
+<li>SVD works for any matrix; eigendecomposition only for square matrices</li>
+<li>SVD singular values are always real and non-negative</li>
+<li>SVD is more stable numerically</li>
+<li>Both reveal fundamental structure of linear transformations</li>
+</ul>
+</li>
+<li><p><strong>Orthogonal Matrices and SVD</strong></p>
+<ul>
+<li>$U$ and $V$ in SVD are orthogonal</li>
+<li>This makes SVD particularly useful for numerical computations</li>
+<li>Preserves numerical stability in computations</li>
+</ul>
+</li>
+<li><p><strong>Applications in Machine Learning</strong></p>
+<ul>
+<li>PCA uses eigendecomposition of covariance matrix</li>
+<li>SVD is used in recommender systems</li>
+<li>Orthogonal matrices preserve distances, important in deep learning</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre></pre>
+</div></div>
+</div>
+<footer class="footer">
+<p>© 2024 Robin Ghyselinck. All Rights Reserved. Any use, reproduction, or distribution of this material without express written permission from the copyright owner is strictly prohibited.</p>
+</footer>
+</body>
+</html>

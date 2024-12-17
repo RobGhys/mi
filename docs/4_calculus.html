@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>4_calculus</title>
+<style>
+        /* Theme */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-container h1 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #0366d6;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .nav-links a:hover {
+            background-color: #e1e4e8;
+        }
+        .nav-links a.active {
+            background-color: #0366d6;
+            color: white;
+        }
+
+        /* Notebook content */
+        .notebook-content {
+            padding: 2rem 0;
+        }
+        
+        .cell {
+            margin: 1rem 0;
+        }
+        
+        .input_area pre {
+            background-color: #f6f8fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        .output_area pre {
+            padding: 1rem;
+            border-left: 3px solid #0366d6;
+            background-color: #f8f9fa;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid #e1e4e8;
+        }
+    </style>
+</head><body>
+<div class="nav-container">
+<h1>Mechanistic Interpretability Tutorial</h1>
+<nav class="nav-links">
+<a href="../../docs/index.html">Home</a>
+<div class="nav-section">
+<a href="../1_maths/1_core_maths.html">Core Maths</a>
+<a href="../1_maths/2_advanced_maths.html">Advanced Maths</a>
+<a href="../1_maths/3_probas.html">Probability</a>
+<a class="active" href="../1_maths/4_calculus.html">Calculus</a>
+</div>
+<div class="nav-section">
+<a href="../2_numpy/1_np_tuto.html">NumPy</a>
+</div>
+<div class="nav-section">
+<a href="../3_nn/micrograd.html">Neural Networks</a>
+</div>
+</nav>
+</div>
+<div class="notebook-content">
+<div class="cell code_cell"><div class="input_area">
+<pre>import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D</pre>
+</div></div>
+<div class="cell markdown_cell"><h2 id="1.-Gradients">1. Gradients<a class="anchor-link" href="#1.-Gradients">¶</a></h2><h3 id="Mathematical-Definition">Mathematical Definition<a class="anchor-link" href="#Mathematical-Definition">¶</a></h3><p>The gradient $\nabla f$ of a function is the vector of all its partial derivatives:</p>
+<p>$\nabla f = \begin{bmatrix} 
+\frac{\partial f}{\partial x_1} \\
+\frac{\partial f}{\partial x_2} \\
+\vdots \\
+\frac{\partial f}{\partial x_n}
+\end{bmatrix}$</p>
+<p>For a two-variable function $f(x,y)$, the gradient is:</p>
+<p>$\nabla f(x,y) = \begin{bmatrix} 
+\frac{\partial f}{\partial x} \\
+\frac{\partial f}{\partial y}
+\end{bmatrix}$</p>
+<h3 id="Important-Properties">Important Properties<a class="anchor-link" href="#Important-Properties">¶</a></h3><ol>
+<li>The gradient points in the direction of steepest increase</li>
+<li>The magnitude tells us the rate of change</li>
+<li>The gradient is perpendicular to level curves/surfaces</li>
+<li>At a minimum/maximum, the gradient is zero: $\nabla f = 0$</li>
+</ol>
+<p>Let's visualize these properties:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def plot_gradient_example():
+    x = np.linspace(-2, 2, 30)
+    y = np.linspace(-2, 2, 30)
+    X, Y = np.meshgrid(x, y)
+    
+    # Simple quadratic function
+    Z = X**2 + Y**2
+    
+    # Compute gradients
+    dx = 2*X
+    dy = 2*Y
+    
+    fig = plt.figure(figsize=(15, 5))
+    
+    # Surface plot
+    ax1 = fig.add_subplot(131, projection='3d')
+    ax1.plot_surface(X, Y, Z, cmap='viridis')
+    ax1.set_title('3D Surface')
+    
+    # Contour with gradient field
+    ax2 = fig.add_subplot(132)
+    ax2.contour(X, Y, Z, levels=20)
+    skip = 3
+    ax2.quiver(X[::skip, ::skip], Y[::skip, ::skip], 
+               dx[::skip, ::skip], dy[::skip, ::skip],
+               scale=50)
+    ax2.set_title('Gradient Field')
+    
+    plt.tight_layout()
+    return fig
+
+plot_gradient_example()</pre>
+</div><div class="output_area"><pre><figure 1500x500="" 2="" axes="" size="" with=""></figure></pre></div></div>
+<div class="cell markdown_cell"><h2 id="2.-The-Chain-Rule">2. The Chain Rule<a class="anchor-link" href="#2.-The-Chain-Rule">¶</a></h2><h3 id="Single-Variable-Chain-Rule">Single-Variable Chain Rule<a class="anchor-link" href="#Single-Variable-Chain-Rule">¶</a></h3><p>For composite functions $h(x) = f(g(x))$, the chain rule states:</p>
+<p>$\frac{d}{dx}h(x) = \frac{df}{dg} \cdot \frac{dg}{dx}$</p>
+<p>Example:
+If $h(x) = \sin(x^2)$, then:
+$\frac{d}{dx}h(x) = \cos(x^2) \cdot 2x$</p>
+<h3 id="Multivariate-Chain-Rule">Multivariate Chain Rule<a class="anchor-link" href="#Multivariate-Chain-Rule">¶</a></h3><p>For multivariate functions, if $z = f(y_1,...,y_n)$ and each $y_i = g_i(x_1,...,x_m)$:</p>
+<p>$\frac{\partial z}{\partial x_i} = \sum_j \frac{\partial z}{\partial y_j}\frac{\partial y_j}{\partial x_i}$</p>
+<p>This is the foundation for backpropagation in neural networks.</p>
+</div>
+<div class="cell markdown_cell"><h2 id="3.-Backpropagation">3. Backpropagation<a class="anchor-link" href="#3.-Backpropagation">¶</a></h2><p>Backpropagation is the chain rule applied systematically to neural networks.</p>
+<p>For a simple neural network:</p>
+<p>$h = \sigma(Wx + b)$
+$y = \sigma(Vh + c)$
+$L = (y - t)^2$</p>
+<p>The chain rule gives us:</p>
+<p>$\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial h} \cdot \frac{\partial h}{\partial W}$</p>
+<p>Where:</p>
+<ul>
+<li>$\frac{\partial L}{\partial y} = 2(y - t)$</li>
+<li>$\frac{\partial y}{\partial h} = \sigma'(Vh + c)V$</li>
+<li>$\frac{\partial h}{\partial W} = \sigma'(Wx + b)x^T$</li>
+</ul>
+<p>Let's implement this:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    s = sigmoid(x)
+    return s * (1 - s)
+
+class SimpleNN:
+    def __init__(self, input_size=2, hidden_size=3, output_size=1):
+        np.random.seed(42)
+        self.W = np.random.randn(input_size, hidden_size)
+        self.V = np.random.randn(hidden_size, output_size)
+        
+    def forward(self, x):
+        self.x = x
+        self.z1 = np.dot(x, self.W)
+        self.h = sigmoid(self.z1)
+        self.z2 = np.dot(self.h, self.V)
+        self.y = sigmoid(self.z2)
+        return self.y
+    
+    def backward(self, x, t):
+        # Compute gradients
+        dL_dy = 2 * (self.y - t)
+        dy_dz2 = sigmoid_derivative(self.z2)
+        dz2_dh = self.V
+        dh_dz1 = sigmoid_derivative(self.z1)
+        
+        # Chain rule
+        delta2 = dL_dy * dy_dz2
+        self.dV = np.dot(self.h.T, delta2)
+        delta1 = np.dot(delta2, dz2_dh.T) * dh_dz1
+        self.dW = np.dot(x.T, delta1)
+        
+        return self.dW, self.dV</pre>
+</div></div>
+<div class="cell markdown_cell"><h3 id="Example:-Training-XOR-Function">Example: Training XOR Function<a class="anchor-link" href="#Example:-Training-XOR-Function">¶</a></h3><p>The XOR function is a classic example that requires a hidden layer to solve.</p>
+<p>Truth table for XOR:</p>
+<ul>
+<li>(0,0) → 0</li>
+<li>(0,1) → 1</li>
+<li>(1,0) → 1</li>
+<li>(1,1) → 0</li>
+</ul>
+<p>Let's train our network on this problem:</p>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre>X = np.array([[0,0], [0,1], [1,0], [1,1]])
+y = np.array([[0], [1], [1], [0]])
+
+nn = SimpleNN()
+learning_rate = 0.1
+losses = []
+
+for epoch in range(1000):
+    # Forward pass
+    output = nn.forward(X)
+    loss = np.mean((output - y) ** 2)
+    losses.append(loss)
+    
+    # Backward pass
+    dW, dV = nn.backward(X, y)
+    
+    # Update weights
+    nn.W -= learning_rate * dW
+    nn.V -= learning_rate * dV
+
+plt.figure(figsize=(10, 5))
+plt.plot(losses)
+plt.title('Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.yscale('log')
+plt.grid(True)
+plt.show()
+</pre>
+</div><div class="output_area"></div></div>
+<div class="cell markdown_cell"><h2 id="Key-Takeaways">Key Takeaways<a class="anchor-link" href="#Key-Takeaways">¶</a></h2><ol>
+<li>The gradient gives us the direction of steepest increase</li>
+<li>The chain rule lets us compute gradients of composite functions</li>
+<li>Backpropagation is just the chain rule applied systematically to neural networks</li>
+<li>Understanding these concepts is crucial for deep learning optimization</li>
+</ol>
+</div>
+<div class="cell code_cell"><div class="input_area">
+<pre></pre>
+</div></div>
+</div>
+<footer class="footer">
+<p>© 2024 Robin Ghyselinck. All Rights Reserved. Any use, reproduction, or distribution of this material without express written permission from the copyright owner is strictly prohibited.</p>
+</footer>
+</body>
+</html>
