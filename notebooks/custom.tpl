@@ -35,7 +35,6 @@
         .nav-links {
             display: flex;
             gap: 1rem;
-            flex-wrap: wrap;
         }
         .nav-links a {
             text-decoration: none;
@@ -46,10 +45,6 @@
         }
         .nav-links a:hover {
             background-color: #e1e4e8;
-        }
-        .nav-links a.active {
-            background-color: #0366d6;
-            color: white;
         }
 
         /* Notebook content */
@@ -99,18 +94,6 @@
         <h1>Mechanistic Interpretability Tutorial</h1>
         <nav class="nav-links">
             <a href="../../docs/index.html">Home</a>
-            <div class="nav-section">
-                <a href="../1_maths/1_core_maths.html" {% if "1_core_maths" in resources['metadata']['name'] %}class="active"{% endif %}>Core Maths</a>
-                <a href="../1_maths/2_advanced_maths.html" {% if "2_advanced_maths" in resources['metadata']['name'] %}class="active"{% endif %}>Advanced Maths</a>
-                <a href="../1_maths/3_probas.html" {% if "3_probas" in resources['metadata']['name'] %}class="active"{% endif %}>Probability</a>
-                <a href="../1_maths/4_calculus.html" {% if "4_calculus" in resources['metadata']['name'] %}class="active"{% endif %}>Calculus</a>
-            </div>
-            <div class="nav-section">
-                <a href="../2_numpy/1_np_tuto.html" {% if "1_np_tuto" in resources['metadata']['name'] %}class="active"{% endif %}>NumPy</a>
-            </div>
-            <div class="nav-section">
-                <a href="../3_nn/micrograd.html" {% if "micrograd" in resources['metadata']['name'] %}class="active"{% endif %}>Neural Networks</a>
-            </div>
         </nav>
     </div>
 
